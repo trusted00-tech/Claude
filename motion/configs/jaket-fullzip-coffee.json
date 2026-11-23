@@ -1,0 +1,19 @@
+{
+  "brand": {"name": "ORORA", "red": "#D0202E", "yellow": "#FFD21F"},
+  "tag": "ORORA · SPORT JACKET",
+  "scenes": {
+    "hook":    {"img": "assets/jaket-olahraga-full-zip-coffee-sport-stretch/clean3.jpg", "focal": [512, 470],
+                "lines": ["Jaket gym", "yang *PAS*", "di badan 👀"]},
+    "benefit": {"img": "assets/jaket-olahraga-full-zip-coffee-sport-stretch/clean0.jpg", "focal": [512, 560],
+                "lines": ["Pas, tapi", "_nggak_ _sesak_"], "chips": ["Ringan", "Cepat kering", "Elastis"]},
+    "detail":  {"img": "assets/jaket-olahraga-full-zip-coffee-sport-stretch/clean4.jpg", "focal": [522, 440], "ringR": 235,
+                "lines": ["Ada lubang", "*jempol*"], "sub": "Lengan nggak ketarik naik\npas angkat beban / lari"},
+    "proof":   {"img": "assets/jaket-olahraga-full-zip-coffee-sport-stretch/img5.jpg",
+                "lines": ["Bahan matte", "& _elastis_"], "meter": {"label": "Melar hingga", "value": 15, "unit": "cm"}},
+    "sizes":   {"img": "assets/jaket-olahraga-full-zip-coffee-sport-stretch/clean1.jpg", "focal": [512, 520],
+                "lines": ["Full *zip*", "~gampang buka-tutup~"], "label": "Size lengkap", "items": ["S", "M", "L", "XL", "XXL"]},
+    "cta":     {"img": "assets/jaket-olahraga-full-zip-coffee-sport-stretch/img6.jpg", "colors": ["#B39B8C", "#BFD6EA", "#EDB9C6"],
+                "meta": "3 warna · S–XXL", "headline": "Cek harga promo\nhari ini 👇", "button": "Klik keranjang kuning",
+                "trust": "Tukar size 3 hari · Dikirim dari Tangerang"}
+  }
+}

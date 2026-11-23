@@ -1,0 +1,196 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--red:#D0202E;--yel:#FFD21F}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#111}
+body{font-family:'Inter Display','Inter',sans-serif;color:#fff}
+#stage{position:relative;width:1080px;height:1920px;overflow:hidden}
+.scene{position:absolute;inset:0;overflow:hidden;opacity:0}
+.photo{position:absolute;left:0;top:0;width:1024px;height:1024px;transform-origin:0 0}
+.photo img{width:1024px;height:1024px;display:block}
+video.bg{position:absolute;inset:0;width:1080px;height:1920px;object-fit:cover;transform-origin:50% 50%}
+.shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,0) 32%,rgba(0,0,0,0) 62%,rgba(0,0,0,.55) 100%)}
+.h{position:absolute;left:70px;right:170px;font-weight:900;line-height:1.02;letter-spacing:-2px;text-shadow:0 6px 24px rgba(0,0,0,.45)}
+.w{display:inline-block;transform-origin:50% 80%}
+.red{background:var(--red);color:#fff;padding:0 18px;border-radius:14px;text-shadow:none}
+.yel{background:var(--yel);color:#141414;padding:0 18px;border-radius:14px;text-shadow:none}
+.sub{position:absolute;left:70px;right:170px;font-weight:700;font-size:46px;line-height:1.2;text-shadow:0 4px 16px rgba(0,0,0,.6)}
+.tag{position:absolute;left:70px;top:920px;font-weight:800;font-size:34px;letter-spacing:3px;padding:10px 22px;border-radius:10px;background:rgba(255,255,255,.92);color:var(--red)}
+.chip{position:absolute;left:70px;display:flex;align-items:center;gap:18px;background:rgba(255,255,255,.95);color:#151515;font-weight:800;font-size:50px;padding:18px 34px 18px 20px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.chip i{width:58px;height:58px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-style:normal;color:#fff;font-size:36px}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.size{display:inline-flex;align-items:center;justify-content:center;min-width:132px;padding:0 20px;height:112px;margin-right:14px;border-radius:22px;background:#fff;color:#151515;font-weight:900;font-size:48px;box-shadow:0 10px 26px rgba(0,0,0,.3)}
+#cta{background:radial-gradient(120% 70% at 50% 35%,#FFF7F2 0%,#F6E6DD 55%,#EBD3C6 100%)}
+.card{position:absolute;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.4)}
+.card img{width:100%;height:100%;display:block;object-fit:cover}
+.dot{display:inline-block;width:58px;height:58px;border-radius:50%;border:5px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.2);margin-right:12px;vertical-align:middle}
+</style></head>
+<body><div id="stage"></div>
+<script>
+// ---------- config ----------
+const C = window.CFG;
+document.documentElement.style.setProperty('--red', C.brand?.red || '#D0202E');
+document.documentElement.style.setProperty('--yel', C.brand?.yellow || '#FFD21F');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// line markup: *word* = red box, _word_ = yellow box, ~text~ = small line
+function lines(arr){
+  return arr.map(l=>{
+    if(l.startsWith('~')) return `<span class="w" style="font-size:.66em;letter-spacing:-1px">${esc(l.replace(/~/g,''))}</span>`;
+    return l.split(' ').map(t=>{
+      if(/^\*.*\*$/.test(t)) return `<span class="w red">${esc(t.slice(1,-1))}</span>`;
+      if(/^_.*_$/.test(t)) return `<span class="w yel">${esc(t.slice(1,-1))}</span>`;
+      return `<span class="w">${esc(t)}</span>`;
+    }).join(' ');
+  }).join('<br>');
+}
+function bg(id,s){
+  return s.video ? `<video class="bg" id="v_${id}" src="${esc(s.video)}" muted playsinline preload="auto"></video>`
+                 : `<div class="photo" id="p_${id}"><img src="${esc(s.img)}"></div>`;
+}
+const sc = C.scenes, st = document.getElementById('stage');
+let html = '';
+html += `<div class="scene" id="hook">${bg('hook',sc.hook)}<div class="shade"></div>
+  ${C.tag?`<div class="tag" id="tag">${esc(C.tag)}</div>`:''}
+  <div class="h" style="top:1020px;font-size:${sc.hook.size||150}px" id="h_hook">${lines(sc.hook.lines)}</div></div>`;
+html += `<div class="scene" id="benefit">${bg('benefit',sc.benefit)}<div class="shade"></div>
+  <div class="h" style="top:250px;font-size:104px" id="h_benefit">${lines(sc.benefit.lines)}</div>
+  ${(sc.benefit.chips||[]).map((c,i)=>`<div class="chip" id="chip${i}" style="top:${1080+i*130}px"><i>✓</i>${esc(c)}</div>`).join('')}</div>`;
+html += `<div class="scene" id="detail">${bg('detail',sc.detail)}<div class="shade"></div>
+  ${sc.detail.ring!==false?`<svg width="1080" height="1920" style="position:absolute;left:0;top:0"><circle id="ring" cx="540" cy="720" r="${sc.detail.ringR||235}" fill="none" stroke="var(--yel)" stroke-width="14" stroke-linecap="round"/></svg>`:''}
+  <div class="h" style="top:1170px;font-size:110px" id="h_detail">${lines(sc.detail.lines)}</div>
+  ${sc.detail.sub?`<div class="sub" style="top:1440px" id="sub_detail">${esc(sc.detail.sub).replace(/\n/g,'<br>')}</div>`:''}</div>`;
+html += `<div class="scene" id="proof">
+  ${sc.proof.video?bg('proof',sc.proof):`<div class="photo" id="p_proof" style="filter:blur(28px) brightness(.55)"><img src="${esc(sc.proof.img)}"></div>
+  <div class="card" id="card_proof" style="left:100px;top:500px;width:880px;height:880px;border-radius:40px"><img src="${esc(sc.proof.img)}"></div>`}
+  <div class="h" style="top:250px;font-size:104px" id="h_proof">${lines(sc.proof.lines)}</div>
+  ${sc.proof.meter?`<div style="position:absolute;left:100px;top:1415px;right:170px" id="meter">
+    <div style="font-weight:800;font-size:50px;margin-bottom:22px;text-shadow:0 4px 16px rgba(0,0,0,.6)">${esc(sc.proof.meter.label)} <span id="num" style="color:var(--yel);font-size:84px">0</span> <span style="color:var(--yel);font-size:60px">${esc(sc.proof.meter.unit||'')}</span></div>
+    <div style="height:34px;border-radius:20px;background:rgba(255,255,255,.3);overflow:hidden"><div id="bar" style="height:100%;width:0;background:linear-gradient(90deg,var(--yel),var(--red));border-radius:20px"></div></div></div>`:''}</div>`;
+html += `<div class="scene" id="sizes">${bg('sizes',sc.sizes)}<div class="shade"></div>
+  <div class="h" style="top:250px;font-size:100px" id="h_sizes">${lines(sc.sizes.lines)}</div>
+  <div style="position:absolute;left:70px;top:1250px;font-weight:800;font-size:44px;text-shadow:0 4px 16px rgba(0,0,0,.6)" id="szl">${esc(sc.sizes.label||'Size lengkap')}</div>
+  <div style="position:absolute;left:70px;top:1330px;white-space:nowrap" id="szs">${(sc.sizes.items||[]).map(s=>`<span class="size">${esc(s)}</span>`).join('')}</div></div>`;
+const cta = sc.cta;
+html += `<div class="scene" id="cta">
+  <div style="position:absolute;left:0;right:0;top:190px;text-align:center;color:var(--red);font-weight:900;font-size:44px;letter-spacing:6px" id="ctag">${esc(C.brand?.name||'ORORA')}</div>
+  <div class="card" id="card_cta" style="left:190px;top:330px;width:700px;height:700px;border-radius:44px;box-shadow:0 40px 80px rgba(80,30,20,.25)"><img src="${esc(cta.img)}"></div>
+  <div style="position:absolute;left:0;right:0;top:1070px;text-align:center;color:#3a2a24;font-weight:800;font-size:40px" id="sw">
+    ${(cta.colors||[]).map(c=>`<span class="dot" style="background:${esc(c)}"></span>`).join('')}&nbsp;${esc(cta.meta||'')}</div>
+  <div style="position:absolute;left:70px;right:70px;top:1180px;text-align:center;color:#1b1412;font-weight:900;font-size:92px;line-height:1.05;letter-spacing:-2px" id="cth">${esc(cta.headline||'Cek harga promo\nhari ini 👇').replace(/\n/g,'<br>')}</div>
+  <div style="position:absolute;left:90px;top:1420px;display:flex;align-items:center;gap:22px;background:var(--red);color:#fff;font-weight:900;font-size:50px;padding:24px 40px 24px 28px;border-radius:999px;box-shadow:0 16px 40px rgba(208,32,46,.45);transform-origin:30% 50%" id="pill">
+    <svg width="64" height="64" viewBox="0 0 24 24"><path fill="#FFD21F" d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM2 3h2.2l2.6 11.2A2 2 0 0 0 8.8 16H19v-2H8.8l-.4-2H18a2 2 0 0 0 1.9-1.4L22 5H5.6L5 3.4A2 2 0 0 0 3.1 2H2v1Z"/></svg>
+    ${esc(cta.button||'Klik keranjang kuning')}</div>
+  <svg id="arrow" width="140" height="170" viewBox="0 0 140 170" style="position:absolute;left:120px;top:1560px"><path d="M70 10 V130 M25 90 L70 140 L115 90" stroke="var(--red)" stroke-width="20" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div style="position:absolute;left:0;right:0;top:1760px;text-align:center;color:#6b5a52;font-weight:700;font-size:34px" id="trust">${esc(cta.trust||'')}</div></div>
+  <div class="flash" id="flash"></div>`;
+st.innerHTML = html;
+
+// ---------- timeline ----------
+const FPS=30;
+const T=C.timing||{hook:2.3,benefit:3.0,detail:2.9,proof:2.7,sizes:2.0,cta:2.6};
+const order=['hook','benefit','detail','proof','sizes','cta'];
+const S=[]; {let a=0; for(const id of order){S.push([id,a,a+T[id]]);a+=T[id];}}
+const DUR=S[S.length-1][2];
+const at=id=>S.find(s=>s[0]===id)[1];
+const end=id=>S.find(s=>s[0]===id)[2];
+const TR=0.22;
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const prog=(t,a,b)=>clamp((t-a)/(b-a));
+const eOut=x=>1-Math.pow(1-x,3), eIn=x=>x*x*x;
+const eInOut=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const eBack=x=>{const c1=1.9,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)};
+const $=id=>document.getElementById(id);
+
+function place(el,fx,fy,s,cx=540,cy=960){
+  let x=cx-fx*s,y=cy-fy*s;
+  x=Math.min(0,Math.max(1080-1024*s,x)); y=Math.min(0,Math.max(1920-1024*s,y));
+  el.style.transform=`translate(${x}px,${y}px) scale(${s})`;
+}
+// background: photo (ken burns around focal) or video (seek + slow push)
+const pending=[];
+function bgAt(id,t,s0,s1,cy){
+  const s=sc[id], a=at(id)-TR, b=end(id)+TR, p=eInOut(prog(t,a,b));
+  const v=$('v_'+id);
+  if(v){ const lt=clamp(t-at(id)+(s.videoStart||0),0,(v.duration||99)-0.05);
+    if(Math.abs(v.currentTime-lt)>0.001){pending.push(new Promise(r=>{v.addEventListener('seeked',r,{once:true});v.currentTime=lt;}));}
+    v.style.transform=`scale(${1+0.06*p})`; return; }
+  const el=$('p_'+id); if(!el) return;
+  const f=s.focal||[512,512];
+  place(el,f[0],f[1],(s.zoom?.[0]||s0)+((s.zoom?.[1]||s1)-(s.zoom?.[0]||s0))*p,540,cy??960);
+}
+function pops(c,t,start,step){
+  if(!c) return;
+  [...c.querySelectorAll('.w')].forEach((w,i)=>{
+    const p=prog(t,start+i*step,start+i*step+0.28);
+    w.style.opacity=p>0?1:0;
+    w.style.transform=`translateY(${(1-eOut(p))*40}px) scale(${0.4+0.6*(p<=0?0.4:eBack(p))})`;
+  });
+}
+function slideIn(el,t,a){ if(!el)return; const p=eOut(prog(t,a,a+.35)); el.style.opacity=prog(t,a,a+.1); el.style.transform=`translateX(${-700*(1-p)}px)`; }
+function fadeUp(el,t,a){ if(!el)return; const p=eOut(prog(t,a,a+.35)); el.style.opacity=p; el.style.transform=`translateY(${(1-p)*50}px)`; }
+
+async function seek(t){
+  pending.length=0;
+  let flash=0;
+  S.forEach(([id,a,b],i)=>{
+    const el=$(id), last=i===S.length-1;
+    if(t<a-TR/2||(t>b+TR/2&&!last)){el.style.opacity=0;return;}
+    el.style.opacity=1; let x=0,blur=0;
+    if(i>0&&t<a+TR/2){const p=prog(t,a-TR/2,a+TR/2);x=(1-eOut(p))*1080;blur=(1-p)*18;}
+    if(!last&&t>b-TR/2){const p=prog(t,b-TR/2,b+TR/2);x=-eIn(p)*1080;blur=p*18;}
+    el.style.transform=`translateX(${x}px)`; el.style.filter=blur>.5?`blur(${blur}px)`:'none';
+    if(i>0) flash=Math.max(flash,(1-Math.abs(t-a)/(TR/2))*.35);
+  });
+  $('flash').style.opacity=clamp(flash);
+
+  // HOOK: punch-in
+  { const a=at('hook'), s=sc.hook;
+    if($('v_hook')) bgAt('hook',t);
+    else { const p=prog(t,a,a+.35); const z=s.zoom||[2.6,2.0]; const sc_=z[0]-(z[0]-z[1])*eOut(p)+.15*prog(t,a+.35,end('hook')+.1);
+      const f=s.focal||[512,470]; place($('p_hook'),f[0],f[1],sc_,540,780); }
+    fadeUp($('tag'),t,a+.1); pops($('h_hook'),t,a+.15,.16);
+    const hl=$('h_hook').querySelector('.red,.yel'); const pp=prog(t,a+1.2,a+1.6);
+    if(hl&&pp>0&&pp<1) hl.style.transform=`scale(${1+.18*Math.sin(pp*Math.PI)}) rotate(${-4*Math.sin(pp*Math.PI*2)}deg)`; }
+  // BENEFIT
+  { const a=at('benefit'); bgAt('benefit',t,1.95,2.12,1000);
+    pops($('h_benefit'),t,a+.15,.12);
+    (sc.benefit.chips||[]).forEach((_,i)=>slideIn($('chip'+i),t,a+.65+i*.3)); }
+  // DETAIL: zoom into focal, ring
+  { const a=at('detail'), s=sc.detail;
+    if($('v_detail')) bgAt('detail',t);
+    else { const f=s.focal||[512,512], z=s.zoom||[1.95,2.35]; const p=eInOut(prog(t,a-.2,end('detail')+.2));
+      place($('p_detail'),f[0],f[1],z[0]+(z[1]-z[0])*p,540,720); }
+    const r=$('ring'); if(r){const R=s.ringR||235, L=2*Math.PI*R; r.setAttribute('stroke-dasharray',L);
+      r.setAttribute('stroke-dashoffset',L*(1-eOut(prog(t,a+.4,a+1)))); r.setAttribute('r',R+8*Math.sin(Math.max(0,t-a-1)*6));}
+    pops($('h_detail'),t,a+.2,.14); fadeUp($('sub_detail'),t,a+1); }
+  // PROOF
+  { const a=at('proof');
+    if($('v_proof')) bgAt('proof',t); else { place($('p_proof'),512,512,1.9+.1*prog(t,a,end('proof')));
+      const cp=prog(t,a-.1,a+.4); $('card_proof').style.transform=`scale(${(.85+.15*eOut(cp))*(1+.04*prog(t,a+.4,end('proof')))}) rotate(${(1-eOut(cp))*4}deg)`; }
+    pops($('h_proof'),t,a+.2,.12); fadeUp($('meter'),t,a+.7);
+    if(sc.proof.meter){const mp=eOut(prog(t,a+.9,a+1.9)); $('bar').style.width=(mp*100)+'%'; $('num').textContent=Math.round(mp*sc.proof.meter.value);} }
+  // SIZES
+  { const a=at('sizes'); bgAt('sizes',t,1.95,2.15,1020);
+    pops($('h_sizes'),t,a+.15,.12); fadeUp($('szl'),t,a+.6);
+    [...$('szs').children].forEach((c,i)=>{const p=prog(t,a+.75+i*.1,a+1.05+i*.1);c.style.opacity=p>0?1:0;c.style.transform=`scale(${p<=0?0:eBack(p)})`;}); }
+  // CTA
+  { const a=at('cta');
+    fadeUp($('ctag'),t,a+.1);
+    const cp=prog(t,a+.05,a+.55); $('card_cta').style.opacity=clamp(cp*3);
+    $('card_cta').style.transform=`translateY(${Math.sin((t-a)*2.2)*10}px) scale(${.6+.4*eBack(cp)}) rotate(${(1-eOut(cp))*-6}deg)`;
+    fadeUp($('sw'),t,a+.45); fadeUp($('cth'),t,a+.6);
+    const pp=prog(t,a+.9,a+1.25); $('pill').style.opacity=pp>0?1:0;
+    $('pill').style.transform=`scale(${(pp<=0?0:eBack(pp))*(1+.05*Math.max(0,Math.sin((t-a-1.3)*7)))})`;
+    $('arrow').style.opacity=prog(t,a+1.2,a+1.4); $('arrow').style.transform=`translateY(${Math.abs(Math.sin((t-a)*5))*30}px)`;
+    fadeUp($('trust'),t,a+1.3); }
+  await Promise.all(pending);
+}
+// SFX cue points for audio.py
+const CUES={transitions:S.slice(1).map(s=>s[1]),
+  pops:[at('hook')+.15,at('hook')+1.25,...(sc.benefit.chips||[]).map((_,i)=>at('benefit')+.65+i*.3),at('detail')+.6,
+        ...(sc.sizes.items||[]).map((_,i)=>at('sizes')+.75+i*.1),at('cta')+.9,at('cta')+1.2],
+  riser:at('cta')-1.0, duration:DUR};
+window.seek=seek; window.FPS=FPS; window.DUR=DUR; window.CUES=CUES;
+</script>
+</body></html>
